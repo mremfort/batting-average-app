@@ -2,8 +2,8 @@ import pandas as pd
 from io import BytesIO
 
 # Path to the existing Excel file
-test_fund_file_path = 'Batting Average Template.xlsx'
-bell_file_path = 'Fund import Template.xlsx'
+test_fund_file_path = './Batting Average Template.xlsx'
+bell_file_path = './Fund import Template.xlsx'
 
 # Function to read the Excel file and return its content
 def get_test_file_content():
