@@ -3,7 +3,7 @@ from io import BytesIO
 
 # Path to the existing Excel file
 test_fund_file_path = 'mremfort/batting-average-app/Batting Average Template.xlsx'
-bell_file_path = 'mremfort/batting-average-app/Fund import template.xlsx'
+bell_file_path = 'Fund_import_template.xlsx'
 
 # Function to read the Excel file and return its content
 def get_test_file_content():
