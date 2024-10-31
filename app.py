@@ -3,6 +3,7 @@ import streamlit as st
 from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, down_benchmark_batting_average
 from template_download_funcs import get_test_file_content, get_bell_file_content
 from export import add_borders_to_tables, write_dataframes_to_excel
+import openpyxl
 
 st.set_page_config(
     page_title="Up-Down App",
