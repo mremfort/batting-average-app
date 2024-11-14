@@ -1,3 +1,19 @@
+import os
+
+# Function to display backup files
+def display_backup_files():
+    if not os.path.exists('backups'):
+        st.write("No backups found.")
+        return
+    
+    backups = sorted([f for f in os.listdir('backups') if f.startswith('funds_scores_backup_')])
+    if backups:
+        st.write("Backup Files:")
+        for backup in backups:
+            st.write(backup)
+    else:
+        st.write("No backups found.")
+
 # app
 import streamlit as st
 import pandas as pd
@@ -173,3 +189,7 @@ elif page == "Database":
                 # Refresh the scores table
                 scores = fetch_scores()
                 display_scores_table(scores)
+
+    st.markdown("---")
+    st.header("Database Backups")
+    display_backup_files()
