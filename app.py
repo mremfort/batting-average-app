@@ -156,9 +156,13 @@ elif page == "Database":
     
     selected_fund = st.selectbox("Select a Fund to Remove", [score[1] for score in scores])
     
-    if selected_fund and st.button("Remove Selected Fund"):
-        confirm_removal = st.checkbox(f"Are you sure you want to remove {selected_fund}?")
-        if confirm_removal:
-            remove_score(selected_fund)
-            backup_database()
-            st.success(f"{selected_fund} has been removed and the database has been backed up.")
+    if selected_fund:
+        if st.button("Remove Selected Fund"):
+            confirm_removal = st.checkbox(f"Are you sure you want to remove {selected_fund}?")
+            if confirm_removal:
+                remove_score(selected_fund)
+                backup_database()
+                st.success(f"{selected_fund} has been removed and the database has been backed up.")
+                # Refresh the scores table
+                scores = fetch_scores()
+                display_scores_table(scores)
