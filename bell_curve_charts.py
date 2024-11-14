@@ -13,7 +13,7 @@ def create_bell_curve_chart(df, mean, std_dev):
     points_with_jitter = []
     for i in range(len(df)):
         while True:
-            jitter = np.random.uniform(-2000 * std_dev, 10 * std_dev)  # Increased jitter range for better separation
+            jitter = np.random.uniform(-2000 * std_dev, 2000 * std_dev)  # Increased jitter range for better separation
             new_y = density_at_points[i] - jitter  # Ensure points are under the curve
             if 0 <= new_y <= density_at_points[i]:
                 points_with_jitter.append((df['Final'][i], new_y))
