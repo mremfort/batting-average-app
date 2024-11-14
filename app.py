@@ -1,11 +1,10 @@
 # app
 import streamlit as st
 import pandas as pd
-from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, \
-    down_benchmark_batting_average
+from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, down_benchmark_batting_average
 from template_download_funcs import get_test_file_content, get_bell_file_content
 from export import add_borders_to_tables, write_dataframes_to_excel
-from database import create_table, insert_or_update_score, fetch_scores
+from database import create_table, insert_or_update_score, fetch_scores, remove_score, backup_database
 
 st.set_page_config(
     page_title="Up-Down App",
@@ -14,21 +13,18 @@ st.set_page_config(
 )
 create_table()
 
-
 def display_scores_table(scores):
     # Create a DataFrame from the scores
-    df = pd.DataFrame(scores, columns=["ID", "Fund", "Benchmark", "Ticker", "All Time Average", "Up Benchmark",
-                                       "Down Benchmark"])
-
+    df = pd.DataFrame(scores, columns=["ID", "Fund", "Benchmark", "Ticker", "All Time Average", "Up Benchmark", "Down Benchmark"])
+    
     # Calculate the Final column
     df["Final"] = (df["Up Benchmark"] + df["Down Benchmark"]) / 2
-
+    
     # Drop the ID column for display
     df = df.drop(columns=["ID"])
-
+    
     # Display the DataFrame as a table
     st.dataframe(df)
-
 
 with st.sidebar:
     page = st.selectbox("Choose a page", ["Test Fund", "Bell Curve", "Database"])
@@ -116,8 +112,7 @@ if page == "Test Fund":
                     file_path = f'combined_data_horizontal_{fund_name}.xlsx'
 
                     # Write DataFrames and add borders
-                    write_dataframes_to_excel(df1, df2, df3, general_comparison_average, up_benchmark_average,
-                                              down_benchmark_average, fund_name, file_path)
+                    write_dataframes_to_excel(df1, df2, df3, general_comparison_average, up_benchmark_average, down_benchmark_average, fund_name, file_path)
                     add_borders_to_tables(file_path, fund_name, df1, df2, df3)
 
                     st.success('Excel file created successfully!')
@@ -151,11 +146,19 @@ elif page == "Bell Curve":
 
 elif page == "Database":
     search_term = st.text_input("Search for a Fund or Benchmark:")
-
+    
     scores = fetch_scores()
-
+    
     if search_term:
-        scores = [score for score in scores if
-                  search_term.lower() in score[1].lower() or search_term.lower() in score[2].lower()]
-
+        scores = [score for score in scores if search_term.lower() in score[1].lower() or search_term.lower() in score[2].lower()]
+    
     display_scores_table(scores)
+    
+    selected_fund = st.selectbox("Select a Fund to Remove", [score[1] for score in scores])
+    
+    if selected_fund and st.button("Remove Selected Fund"):
+        confirm_removal = st.checkbox(f"Are you sure you want to remove {selected_fund}?")
+        if confirm_removal:
+            remove_score(selected_fund)
+            backup_database()
+            st.success(f"{selected_fund} has been removed and the database has been backed up.")
