@@ -13,7 +13,7 @@ def create_bell_curve_chart(df, mean, std_dev):
     points_with_jitter = []
     for i in range(len(df)):
         while True:
-            jitter = np.random.uniform(-10 * std_dev, 10 * std_dev)  # Increased jitter range for better separation
+            jitter = np.random.uniform(-20 * std_dev, 20 * std_dev)  # Increased jitter range for better separation
             new_y = density_at_points[i] - jitter  # Ensure points are under the curve
             if 0 <= new_y <= density_at_points[i]:
                 points_with_jitter.append((df['Final'][i], new_y))
@@ -21,9 +21,12 @@ def create_bell_curve_chart(df, mean, std_dev):
 
     jittered_x, jittered_y = zip(*points_with_jitter) if points_with_jitter else ([], [])
 
-    # Color data points based on their distance from the mean
-    is_high_fund = np.abs(df['Final'] - mean) > 1.5 * std_dev
-    colors = np.where(is_high_fund, 'green', 'red')  # Color high funds points green
+    # Sort the DataFrame by 'Final' to identify the top 3 points
+    df_sorted = df.sort_values(by='Final', ascending=False)
+    top_3_indices = df_sorted.head(3).index
+
+    # Color data points: top 3 green, rest red
+    colors = ['green' if i in top_3_indices else 'red' for i in df.index]
 
     # Create the bell curve plot
     bell_curve = go.Scatter(
