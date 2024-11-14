@@ -1,6 +1,7 @@
 import sqlite3
 import shutil
 import os
+from datetime import datetime
 
 # Connect to the SQLite database (or create it if it doesn't exist)
 def connect_db():
@@ -56,6 +57,8 @@ def remove_score(fund_name):
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM fund_scores WHERE fund_name = ?', (fund_name,))
+    if cursor.rowcount == 0:
+        print(f"No record found for fund_name: {fund_name}")
     conn.commit()
     conn.close()
 
@@ -71,6 +74,8 @@ def backup_database():
     if len(backups) >= 5:
         os.remove(os.path.join('backups', backups[0]))
     
-    # Create a new backup
-    backup_filename = f'funds_scores_backup_{len(backups) + 1}.db'
+    # Create a new backup with a timestamp
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    backup_filename = f'funds_scores_backup_{timestamp}.db'
     shutil.copy('funds_scores.db', os.path.join('backups', backup_filename))
+    print(f"Backup created: {backup_filename}")
