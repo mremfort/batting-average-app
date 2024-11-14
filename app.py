@@ -1,6 +1,7 @@
 # app
 import streamlit as st
 import pandas as pd
+import time
 from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, down_benchmark_batting_average
 from template_download_funcs import get_test_file_content, get_bell_file_content
 from export import add_borders_to_tables, write_dataframes_to_excel
@@ -25,6 +26,12 @@ def display_scores_table(scores):
     
     # Display the DataFrame as a table
     st.dataframe(df)
+
+def backup_database_with_progress():
+    with st.spinner('Backing up database...'):
+        backup_database()
+        time.sleep(2)  # Simulate a delay for the backup process
+        st.success('Database backup completed!')
 
 with st.sidebar:
     page = st.selectbox("Choose a page", ["Test Fund", "Bell Curve", "Database"])
@@ -158,10 +165,10 @@ elif page == "Database":
     
     if selected_fund:
         if st.button("Remove Selected Fund"):
-            confirm_removal = st.checkbox(f"Are you sure you want to remove {selected_fund}?")
+            confirm_removal = st.checkbox(f"Confirm removal of {selected_fund}")
             if confirm_removal:
                 remove_score(selected_fund)
-                backup_database()
+                backup_database_with_progress()
                 st.success(f"{selected_fund} has been removed and the database has been backed up.")
                 # Refresh the scores table
                 scores = fetch_scores()
