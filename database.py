@@ -79,3 +79,11 @@ def backup_database():
     backup_filename = f'funds_scores_backup_{timestamp}.db'
     shutil.copy('funds_scores.db', os.path.join('backups', backup_filename))
     print(f"Backup created: {backup_filename}")
+
+# Restore the database from a selected backup
+def restore_database(backup_filename):
+    if os.path.exists(os.path.join('backups', backup_filename)):
+        shutil.copy(os.path.join('backups', backup_filename), 'funds_scores.db')
+        print(f"Database restored from {backup_filename}")
+    else:
+        print(f"Backup file {backup_filename} does not exist")
