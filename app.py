@@ -21,7 +21,7 @@ import time
 from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, down_benchmark_batting_average
 from template_download_funcs import get_test_file_content, get_bell_file_content
 from export import add_borders_to_tables, write_dataframes_to_excel
-from database import create_table, insert_or_update_score, fetch_scores, remove_score, backup_database, , restore_database
+from database import create_table, insert_or_update_score, fetch_scores, remove_score, backup_database, restore_database
 
 st.set_page_config(
     page_title="Up-Down App",
