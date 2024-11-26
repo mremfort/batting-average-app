@@ -54,7 +54,7 @@ with st.sidebar:
 
     if page == "Test Fund":
         if st.download_button(
-                label="Download Excel File",
+                label="Download Excel Template",
                 data=get_test_file_content(),
                 file_name="batting_average_template.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
