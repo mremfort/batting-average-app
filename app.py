@@ -190,7 +190,7 @@ elif page == "Database":
 
         if st.session_state.confirm_remove:
             st.error("Do you really, really, wanna do this?")
-            if st.button("Yes I'm ready to rumble"):
+            if st.button("Yes"):
                 backup_database_with_progress()
                 remove_score(selected_fund)
                 st.success(f"{selected_fund} has been removed and the database has been backed up.")
