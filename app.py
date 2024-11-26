@@ -179,16 +179,26 @@ elif page == "Database":
     
     selected_fund = st.selectbox("Select a Fund to Remove", [score[1] for score in scores])
     
+   
+    # Initialize session state for confirmation
+    if 'confirm_remove' not in st.session_state:
+        st.session_state.confirm_remove = False
+
     if selected_fund:
         if st.button("Remove Selected Fund"):
-            confirm_removal = st.checkbox(f"Confirm removal of {selected_fund}")
-            if confirm_removal:
-                remove_score(selected_fund)
+            st.session_state.confirm_remove = True
+
+        if st.session_state.confirm_remove:
+            st.error("Do you really, really, wanna do this?")
+            if st.button("Yes I'm ready to rumble"):
                 backup_database_with_progress()
+                remove_score(selected_fund)
                 st.success(f"{selected_fund} has been removed and the database has been backed up.")
                 # Refresh the scores table
                 scores = fetch_scores()
                 display_scores_table(scores)
+                # Reset confirmation state
+                st.session_state.confirm_remove = False
 
     st.markdown("---")
     st.header("Database Backups")
