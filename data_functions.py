@@ -56,3 +56,23 @@ def down_benchmark_batting_average(general_comparison_table):
     down_benchmark_average = count_check / total_rows if total_rows > 0 else 0
 
     return down_benchmark_table, down_benchmark_average
+
+
+def calculate_excess_return(fund_data_df):
+    fund_data_df['Excess Return'] = fund_data_df['Fund Return'] - fund_data_df['Benchmark Return']
+    return fund_data_df
+
+def calculate_annualized_return(returns):
+    return np.prod(1 + returns) ** (12 / len(returns)) - 1
+
+def calculate_annualized_std(returns):
+    return np.std(returns, ddof=1) * np.sqrt(12)
+
+def calculate_tracking_error(excess_returns):
+    return np.std(excess_returns, ddof=1) * np.sqrt(12)
+
+def calculate_sharpe_ratio(annualized_return, annualized_std):
+    return annualized_return / annualized_std
+
+def calculate_information_ratio(excess_return, tracking_error):
+    return excess_return / tracking_error
