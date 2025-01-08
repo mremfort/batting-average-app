@@ -70,7 +70,7 @@ with st.sidebar:
             st.success("Download initiated!")
     elif page == "Bell Curve":
         if st.download_button(
-                label="Download Excel File",
+                label="Download Bell Curve Template",
                 data=get_bell_file_content(),
                 file_name="bell_curve_import_template_.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
