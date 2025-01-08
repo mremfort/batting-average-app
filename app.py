@@ -1,11 +1,12 @@
 import os
 
+
 # Function to display backup files
 def display_backup_files():
     if not os.path.exists('backups'):
         st.write("No backups found.")
         return
-    
+
     backups = sorted([f for f in os.listdir('backups') if f.startswith('funds_scores_backup_')])
     if backups:
         st.write("Backup Files:")
@@ -14,11 +15,14 @@ def display_backup_files():
     else:
         st.write("No backups found.")
 
+
 # app
 import streamlit as st
 import pandas as pd
 import time
-from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, down_benchmark_batting_average
+from data_functions import uploaded_file_check, all_around_batting_average, up_benchmark_batting_average, \
+    down_benchmark_batting_average, calculate_excess_return, calculate_annualized_return, calculate_annualized_std, \
+    calculate_tracking_error, calculate_sharpe_ratio, calculate_information_ratio
 from template_download_funcs import get_test_file_content, get_bell_file_content
 from export import add_borders_to_tables, write_dataframes_to_excel
 from database import create_table, insert_or_update_score, fetch_scores, remove_score, backup_database, restore_database
@@ -30,18 +34,21 @@ st.set_page_config(
 )
 create_table()
 
+
 def display_scores_table(scores):
     # Create a DataFrame from the scores
-    df = pd.DataFrame(scores, columns=["ID", "Fund", "Benchmark", "Ticker", "All Time Average", "Up Benchmark", "Down Benchmark"])
-    
+    df = pd.DataFrame(scores, columns=["ID", "Fund", "Benchmark", "Ticker", "All Time Average", "Up Benchmark",
+                                       "Down Benchmark"])
+
     # Calculate the Final column
     df["Final"] = (df["Up Benchmark"] + df["Down Benchmark"]) / 2
-    
+
     # Drop the ID column for display
     df = df.drop(columns=["ID"])
-    
+
     # Display the DataFrame as a table
     st.dataframe(df)
+
 
 def backup_database_with_progress():
     with st.spinner('Backing up database...'):
@@ -49,12 +56,13 @@ def backup_database_with_progress():
         time.sleep(2)  # Simulate a delay for the backup process
         st.success('Database backup completed!')
 
+
 with st.sidebar:
     page = st.selectbox("Choose a page", ["Test Fund", "Bell Curve", "Database"])
 
     if page == "Test Fund":
         if st.download_button(
-                label="Download Excel Template",
+                label="Download Excel File",
                 data=get_test_file_content(),
                 file_name="batting_average_template.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -86,6 +94,20 @@ if page == "Test Fund":
                     st.write(fund_info_pd.at[0, "Benchmark Ticker"])
 
                 st.markdown("---")
+                # Calculate excess return
+                fund_data_pd = calculate_excess_return(fund_data_pd)
+
+                # Calculate metrics
+                annualized_return_fund = calculate_annualized_return(fund_data_pd['Fund Return'])
+                annualized_return_benchmark = calculate_annualized_return(fund_data_pd['Benchmark Return'])
+                annualized_std_fund = calculate_annualized_std(fund_data_pd['Fund Return'])
+                annualized_std_benchmark = calculate_annualized_std(fund_data_pd['Benchmark Return'])
+                excess_return = annualized_return_fund - annualized_return_benchmark
+                tracking_error = calculate_tracking_error(fund_data_pd['Excess Return'])
+                sharpe_ratio_fund = calculate_sharpe_ratio(annualized_return_fund, annualized_std_fund)
+                sharpe_ratio_benchmark = calculate_sharpe_ratio(annualized_return_benchmark, annualized_std_benchmark)
+                information_ratio = calculate_information_ratio(excess_return, tracking_error)
+                information_ratio = calculate_information_ratio(excess_return, tracking_error)
 
                 general_comparison_table, general_comparison_average = all_around_batting_average(fund_data_pd)
                 up_benchmark_table, up_benchmark_average = up_benchmark_batting_average(general_comparison_table)
@@ -115,6 +137,34 @@ if page == "Test Fund":
                     full_average = round(((up_benchmark_average + down_benchmark_average) / 2) * 100)
                     st.subheader(f"{full_average}%")
 
+
+                excess_cols1, excess_cols2, excess_cols3 = st.columns(3)
+                # Display calculated metrics
+
+                with excess_cols1:
+                    st.markdown("---")
+                    st.header("Fund Excess Return Data")
+                    st.write(f"Annualized Return (Fund): {annualized_return_fund:.2%}")
+                    st.write(f"Annualized STD (Fund): {annualized_std_fund:.2%}")
+                    st.write(f"Excess Return (Fund): {excess_return:.2%}")
+                    st.write(f"Tracking Error (Fund): {tracking_error:.2%}")
+                    st.write(f"Sharpe Ratio (Fund): {sharpe_ratio_fund:.2f}")
+                    st.write(f"Information Ratio (Fund): {information_ratio:.2f}")
+
+                with excess_cols2:
+                    # Display excess return data
+                    st.markdown("---")
+                    st.header("Bench Return Data")
+                    st.write(f"Annualized Return (Benchmark): {annualized_return_benchmark:.2%}")
+                    st.write(f"Annualized STD (Benchmark): {annualized_std_benchmark:.2%}")
+                    st.write(f"Sharpe Ratio (Benchmark): {sharpe_ratio_benchmark:.2f}")
+                with excess_cols3:
+                    # Display excess return data
+                    st.markdown("---")
+                    st.header("Excess Return Table")
+                    with st.expander("View Excess Return Table"):
+                        st.dataframe(fund_data_pd[['Date', 'Fund Return', 'Benchmark Return', 'Excess Return']])
+
                 # Insert or update scores in the database
                 insert_or_update_score(
                     fund_info_pd.at[0, "Fund Name"],
@@ -134,9 +184,25 @@ if page == "Test Fund":
                     fund_name = fund_info_pd.at[0, "Fund Name"]
                     file_path = f'combined_data_horizontal_{fund_name}.xlsx'
 
+                    # Create the excess return data DataFrame
+                    excess_return_data = fund_data_pd[['Date', 'Fund Return', 'Benchmark Return', 'Excess Return']]
+
+                    # Create the final scores DataFrame
+                    final_scores = pd.DataFrame({
+                        "Metric": ["Annualized Return (Fund)", "Annualized Return (Benchmark)",
+                                   "Annualized STD (Fund)", "Annualized STD (Benchmark)",
+                                   "Excess Return", "Tracking Error", "Sharpe Ratio (Fund)",
+                                   "Sharpe Ratio (Benchmark)", "Information Ratio", "Up Batting Average","Down Batting Average", "All Time Batting Average","Final Batting Average"],
+                        "Value": [annualized_return_fund, annualized_return_benchmark, annualized_std_fund,
+                                  annualized_std_benchmark,
+                                  excess_return, tracking_error, sharpe_ratio_fund, sharpe_ratio_benchmark,
+                                  information_ratio,up_benchmark_average,down_benchmark_average,general_comparison_average,full_average]
+                    })
+
                     # Write DataFrames and add borders
-                    write_dataframes_to_excel(df1, df2, df3, general_comparison_average, up_benchmark_average, down_benchmark_average, fund_name, file_path)
-                    add_borders_to_tables(file_path, fund_name, df1, df2, df3)
+                    write_dataframes_to_excel(df1, df2, df3, general_comparison_average, up_benchmark_average,
+                                              down_benchmark_average, fund_name, file_path, excess_return_data,
+                                              final_scores)
 
                     st.success('Excel file created successfully!')
                     # Provide a link to download the file
@@ -169,17 +235,17 @@ elif page == "Bell Curve":
 
 elif page == "Database":
     search_term = st.text_input("Search for a Fund or Benchmark:")
-    
+
     scores = fetch_scores()
-    
+
     if search_term:
-        scores = [score for score in scores if search_term.lower() in score[1].lower() or search_term.lower() in score[2].lower()]
-    
+        scores = [score for score in scores if
+                  search_term.lower() in score[1].lower() or search_term.lower() in score[2].lower()]
+
     display_scores_table(scores)
-    
+
     selected_fund = st.selectbox("Select a Fund to Remove", [score[1] for score in scores])
-    
-   
+
     # Initialize session state for confirmation
     if 'confirm_remove' not in st.session_state:
         st.session_state.confirm_remove = False
@@ -190,7 +256,7 @@ elif page == "Database":
 
         if st.session_state.confirm_remove:
             st.error("Do you really, really, wanna do this?")
-            if st.button("Yes"):
+            if st.button("Yes I'm ready to rumble"):
                 backup_database_with_progress()
                 remove_score(selected_fund)
                 st.success(f"{selected_fund} has been removed and the database has been backed up.")
@@ -199,8 +265,7 @@ elif page == "Database":
                 display_scores_table(scores)
                 # Reset confirmation state
                 st.session_state.confirm_remove = False
-
-            # Restore database section
+        # Restore database section
         st.header("Restore Database from Backup")
         backups = sorted([f for f in os.listdir('backups') if f.startswith('funds_scores_backup_')])
         selected_backup = st.selectbox("Select a Backup to Restore", backups)
