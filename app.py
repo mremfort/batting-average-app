@@ -214,7 +214,7 @@ if page == "Test Fund":
                             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                         )
             else:
-                st.error("The DataFrame is empty. Please check the uploaded file.")
+                st.error("The file is empty. Please check the uploaded file.")
 
 elif page == "Bell Curve":
     from bell_curve_funcs import process_uploaded_data, process_database_data
