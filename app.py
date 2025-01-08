@@ -62,7 +62,7 @@ with st.sidebar:
 
     if page == "Test Fund":
         if st.download_button(
-                label="Download Excel File",
+                label="Download Batting Template",
                 data=get_test_file_content(),
                 file_name="batting_average_template.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -70,7 +70,7 @@ with st.sidebar:
             st.success("Download initiated!")
     elif page == "Bell Curve":
         if st.download_button(
-                label="Download Test Fund Template",
+                label="Download Excel File",
                 data=get_bell_file_content(),
                 file_name="bell_curve_import_template_.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
