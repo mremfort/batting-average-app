@@ -69,7 +69,7 @@ def calculate_annualized_std(returns):
     return np.std(returns, ddof=1) * np.sqrt(12)
 
 def calculate_tracking_error(excess_returns):
-    return np.std(excess_returns, ddof=1) * np.sqrt(12)
+    return np.std(excess_returns, ddof=0) * np.sqrt(12)
 
 def calculate_sharpe_ratio(annualized_return, annualized_std):
     return annualized_return / annualized_std
