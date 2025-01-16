@@ -175,11 +175,7 @@ if page == "Test Fund":
                     down_benchmark_average
                 )
 
-                if st.sidebar.button('Show All Scores'):
-                    scores = fetch_scores()
-                    display_scores_table(scores)
-
-                if st.sidebar.button('Create Excel File'):
+                if st.sidebar.button('Export Results'):
                     df1, df2, df3 = general_comparison_table, up_benchmark_table, down_benchmark_table
                     fund_name = fund_info_pd.at[0, "Fund Name"]
                     file_path = f'combined_data_horizontal_{fund_name}.xlsx'
