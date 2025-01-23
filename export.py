@@ -11,34 +11,34 @@ def add_batting_column(df, batting_value):
     return df
 
 
-def filter_benchmark_rows(df, condition):
-    return df[df['Benchmark Return'] > 0] if condition == 'positive' else df[df['Benchmark Return'] < 0]
-
-
-def write_dataframes_to_excel(df1, df2, df3, df1_batting, df2_batting, df3_batting, fund_name, file_path,
+def write_dataframes_to_excel(df1, df2_positive, df3_negative, df1_batting, df2_batting, df3_batting, fund_name,
+                              file_path,
                               excess_return_data, final_scores):
     df1 = add_batting_column(df1, df1_batting)
-    df2 = filter_benchmark_rows(df2, 'positive')
-    df3 = filter_benchmark_rows(df3, 'negative')
-
-    df2 = add_batting_column(df2, df2_batting)
-    df3 = add_batting_column(df3, df3_batting)
+    df2_positive = add_batting_column(df2_positive, df2_batting)
+    df3_negative = add_batting_column(df3_negative, df3_batting)
 
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         final_scores.to_excel(writer, sheet_name=f'{fund_name}_results', index=False)
-        df_batting = pd.concat([df1, pd.DataFrame(columns=['']), df2, pd.DataFrame(columns=['']), df3], axis=1)
-        df_batting.to_excel(writer, sheet_name='batting_average', index=False)
+
+        # Write individual DataFrames to separate sections of the sheet template
+        df1.to_excel(writer, sheet_name='batting_average', startrow=0, startcol=0, index=False)
+        df2_positive.to_excel(writer, sheet_name='batting_average', startrow=0, startcol=df1.shape[1] + 1, index=False)
+        df3_negative.to_excel(writer, sheet_name='batting_average', startrow=0,
+                              startcol=df1.shape[1] + df2_positive.shape[1] + 2, index=False)
+
         excess_return_data.to_excel(writer, sheet_name='excess', index=False)
 
     resize_columns(file_path, fund_name + '_results')
     resize_columns(file_path, 'batting_average')
     resize_columns(file_path, 'excess')
     add_borders_to_tables(file_path, fund_name + '_results', final_scores)
-    add_borders_to_batting(file_path, 'batting_average', [df1, df2, df3])
+    add_borders_to_batting(file_path, 'batting_average', [df1, df2_positive, df3_negative])
     format_date_columns(file_path, 'batting_average')
     format_date_columns(file_path, 'excess')
     add_titles_to_batting(file_path, 'batting_average',
-                          ['All Time Batting', 'Positive Benchmark', 'Negative Benchmark'], [df1, df2, df3])
+                          ['All Time Batting', 'Positive Benchmark', 'Negative Benchmark'],
+                          [df1, df2_positive, df3_negative])
     insert_row_and_label_columns(file_path, 'batting_average',
                                  ['Date', 'Fund Return', 'Benchmark Return', 'Excess', 'Is Greater', 'Batting'])
     format_excess_table(file_path, 'excess')
