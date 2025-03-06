@@ -178,7 +178,8 @@ if page == "Test Fund":
                 if st.sidebar.button('Export Results'):
                     df1, df2, df3 = general_comparison_table, up_benchmark_table, down_benchmark_table
                     fund_name = fund_info_pd.at[0, "Fund Name"]
-                    file_path = f'combined_data_horizontal_{fund_name}.xlsx'
+                    benchmark_name = fund_info_pd.at[0, "Benchmark Name"]
+                    file_path = f'{fund_name}_vs_{benchmark_name}_results.xlsx'
 
                     # Create the excess return data DataFrame
                     excess_return_data = fund_data_pd[['Date', 'Fund Return', 'Benchmark Return', 'Excess Return']]
