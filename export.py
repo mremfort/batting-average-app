@@ -11,9 +11,8 @@ def add_batting_column(df, batting_value):
     return df
 
 
-def write_dataframes_to_excel(df1, df2_positive, df3_negative, df1_batting, df2_batting, df3_batting, fund_name,
-                              file_path,
-                              excess_return_data, final_scores):
+def write_dataframes_to_excel(df1, df2_positive, df3_negative, df1_batting, df2_batting, df3_batting, fund_name,benchmark_name,
+                              file_path, excess_return_data, final_scores):
     df1 = add_batting_column(df1, df1_batting)
     df2_positive = add_batting_column(df2_positive, df2_batting)
     df3_negative = add_batting_column(df3_negative, df3_batting)
@@ -28,6 +27,9 @@ def write_dataframes_to_excel(df1, df2_positive, df3_negative, df1_batting, df2_
                               startcol=df1.shape[1] + df2_positive.shape[1] + 2, index=False)
 
         excess_return_data.to_excel(writer, sheet_name='excess', index=False)
+
+    # Add title to the "results" sheet
+    add_title_to_results(file_path, fund_name, benchmark_name)
 
     resize_columns(file_path, fund_name + '_results')
     resize_columns(file_path, 'batting_average')
@@ -44,6 +46,30 @@ def write_dataframes_to_excel(df1, df2_positive, df3_negative, df1_batting, df2_
     format_excess_table(file_path, 'excess')
     add_title_to_excess(file_path, 'excess', 'Excess Return Table')
 
+def add_title_to_results(file_path, fund_name, benchmark_name):
+    wb = load_workbook(file_path)
+    ws = wb[f'{fund_name}_results']
+
+    # Define the title formatting
+    font = Font(color='FFFFFFFF', bold=True, size=16)  # White, bold, and large
+    fill = PatternFill(start_color='FF10045A', end_color='FF10045A', fill_type='solid')  # Dark background
+    alignment = Alignment(horizontal='center', vertical='center')
+
+    # Merge cells to create a wide enough area for the title
+    last_column = ws.max_column  # Get the last column of data
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=last_column)
+
+    # Add the title text
+    title_cell = ws.cell(row=1, column=1)
+    title_cell.value = f"{fund_name} vs {benchmark_name} results"
+    title_cell.font = font
+    title_cell.fill = fill
+    title_cell.alignment = alignment
+
+    # Optional: Adjust row height to make the title stand out more
+    ws.row_dimensions[1].height = 30  # Adjust as needed
+
+    wb.save(file_path)
 
 def add_borders_to_tables(file_path, sheet_name, final_scores):
     wb = load_workbook(file_path)
@@ -83,23 +109,40 @@ def resize_columns(file_path, sheet_name):
     wb = load_workbook(file_path)
     ws = wb[sheet_name]
 
+    # Get all merged cell ranges in the worksheet
+    merged_ranges = ws.merged_cells.ranges
+
+    # Loop through all columns
     for col in ws.columns:
-        max_length = 0
-        column = col[0].column_letter
-        for cell in col:
-            try:
-                if isinstance(cell.value, (str, int, float)):
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                if cell.is_date:
-                    cell.number_format = 'yyyy-mm-dd'
-                    max_length = max(max_length, 10)  # Assuming date format is 'YYYY-MM-DD' which is 10 characters
-            except:
-                pass
-        adjusted_width = (max_length + 2)
-        ws.column_dimensions[column].width = adjusted_width
+        if col:  # Check if the column is not empty
+            skip_column = False
+
+            # Check if this column is part of any merged range
+            for merged_range in merged_ranges:
+                # If the column is part of the merged range, skip it
+                if col[0].row >= merged_range.min_row and col[0].row <= merged_range.max_row:
+                    if col[0].column >= merged_range.min_col and col[0].column <= merged_range.max_col:
+                        skip_column = True
+                        break
+
+            if not skip_column:  # Only proceed if the column is not part of a merged range
+                max_length = 0
+                column = col[0].column_letter  # Get the column letter of the first cell in the column
+                for cell in col:
+                    try:
+                        if isinstance(cell.value, (str, int, float)):
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(str(cell.value))
+                        if cell.is_date:
+                            max_length = max(max_length, 10)  # Date format length
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)  # Adjusting width with some padding
+                ws.column_dimensions[column].width = adjusted_width
 
     wb.save(file_path)
+
+
 
 
 def format_date_columns(file_path, sheet_name):
@@ -178,7 +221,8 @@ def format_excess_table(file_path, sheet_name):
     header_alignment = Alignment(horizontal='center', vertical='center')
 
     # Define border style
-    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'),
+                    bottom=Side(style='thin'))
 
     # Format the header row (row 2) - Assuming headers are in row 2
     for col_num, cell in enumerate(ws[2], start=1):
@@ -205,6 +249,7 @@ def format_excess_table(file_path, sheet_name):
 
     wb.save(file_path)
 
+
 def add_title_to_excess(file_path, sheet_name, title):
     wb = load_workbook(file_path)
     ws = wb[sheet_name]
@@ -218,7 +263,6 @@ def add_title_to_excess(file_path, sheet_name, title):
     for row in range(ws.max_row, 0, -1):  # Start from the last row and go upwards
         for col in range(1, ws.max_column + 1):
             ws.cell(row=row + 1, column=col).value = ws.cell(row=row, column=col).value
-
 
     # Merge cells in row 1 for the title
     last_column = ws.max_column  # Get the last column with data
@@ -236,7 +280,4 @@ def add_title_to_excess(file_path, sheet_name, title):
 
     wb.save(file_path)
 
-
-
     wb.save(file_path)
-
