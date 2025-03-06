@@ -199,16 +199,16 @@ if page == "Test Fund":
                     write_dataframes_to_excel(df1, df2, df3, general_comparison_average, up_benchmark_average,
                                               down_benchmark_average, fund_name, file_path, excess_return_data,
                                               final_scores)
-
-                    st.success('Excel file created successfully!')
-                    # Provide a link to download the file
-                    with open(file_path, 'rb') as f:
-                        st.download_button(
-                            label='Download Excel File',
-                            data=f,
-                            file_name=file_path,
-                            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                        )
+                    with st.sidebar:
+                        st.success('Excel file created successfully!')
+                        # Provide a link to download the file
+                        with open(file_path, 'rb') as f:
+                            st.download_button(
+                                label='Download Excel File',
+                                data=f,
+                                file_name=file_path,
+                                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                            )
             else:
                 st.error("The file is empty. Please check the uploaded file.")
 
